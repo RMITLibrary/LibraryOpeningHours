@@ -8,6 +8,11 @@ The application is a long-running custom PHP and MySQL solution hosted on the li
 
 The system exists because opening hours need to be updated dynamically and reliably, including for routine timetable changes, study hall and makerspace variations, events, staffing changes, emergency changes, and other short-notice service adjustments. 
 
+### 2026
+
+Testing files are in /docs/ and published to github
+
+
 ## Key Files 
 
 ### open-hours-3col.php
