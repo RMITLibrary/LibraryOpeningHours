@@ -329,7 +329,39 @@
         "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
 		"2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
       }
-	}	  
-    
+	},	  
+    "askthelibrary": {
+      "name": "Ask the Library",
+      "defaults": {
+        "mon": { "open": "8am", "close": "9pm" },
+        "tue": { "open": "8am", "close": "9pm" },
+        "wed": { "open": "8am", "close": "9pm" },
+        "thu": { "open": "8am", "close": "9pm" },
+        "fri": { "open": "8am", "close": "6pm" },
+        "sat": { "open": "11am", "close": "5pm" },
+        "sun": { "open": "11am", "close": "5pm" }
+      },
+      "ranges": [
+        {
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+            "fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+        "2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+      }
+    }
 	}
   }

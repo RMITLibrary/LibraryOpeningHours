@@ -138,6 +138,33 @@
     .status-closed { color: var(--rmit-red); font-weight: bold; }
     .note { font-style: italic; color: #666; margin-top: auto; padding-top: 2px; }
 
+    /* Mobile viewport preview: forces the same mobile CSS index.html applies
+       at max-width:600px, inside a fixed-width phone frame regardless of
+       actual window width. */
+    .preview-mobile-heading { margin: 18px 0 8px; font-size: 0.95rem; color: var(--rmit-blue); border-top: 1px solid var(--border-color); padding-top: 12px; }
+    .phone-frame {
+        width: 320px;
+        max-width: 100%;
+        margin: 0 auto;
+        border: 8px solid #222;
+        border-radius: 24px;
+        background: #222;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        overflow: hidden;
+    }
+    .phone-frame .phone-screen {
+        background: white;
+        max-height: 480px;
+        overflow-y: auto;
+        border-radius: 4px;
+    }
+    .mobile-frame { padding: 8px; font-size: 0.85em; }
+    .mobile-frame .calendar-grid { grid-template-columns: repeat(1, 1fr); }
+    .mobile-frame .grid-header { display: none; }
+    .mobile-frame .day { min-height: auto; border-bottom: 1px solid var(--border-color); }
+    .mobile-frame .calendar-nav h2 { font-size: 1.1rem; }
+    .mobile-frame .nav-btn { padding: 4px 8px; }
+
     textarea#raw-json { width: 100%; height: 260px; font-family: Menlo, Consolas, monospace; font-size: 0.78em; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; }
     #raw-json-status { font-size: 0.8em; margin-top: 6px; }
     details.raw-panel summary { cursor: pointer; font-weight: bold; color: var(--rmit-blue); margin-bottom: 8px; }
@@ -171,6 +198,14 @@
     <div class="panel" id="preview-panel">
         <h2>Preview</h2>
         <div id="preview-app"></div>
+
+        <h3 class="preview-mobile-heading">Mobile viewport preview</h3>
+        <div class="phone-frame">
+            <div class="phone-screen">
+                <div id="preview-app-mobile" class="mobile-frame"></div>
+            </div>
+        </div>
+
         <details class="raw-panel" style="margin-top:16px;">
             <summary>Raw JSON (advanced)</summary>
             <textarea id="raw-json" spellcheck="false"></textarea>
@@ -640,20 +675,14 @@ function getHoursForDate(locationId, dateObj) {
     return location.defaults ? location.defaults[dayName] : null;
 }
 
-function renderPreview() {
-    const container = document.getElementById('preview-app');
-    if (!currentLocationId || !data.locations[currentLocationId]) {
-        container.innerHTML = '<p class="empty-hint">Select a location to preview its calendar.</p>';
-        return;
-    }
-    const locationData = data.locations[currentLocationId];
+function buildCalendarHtml(locationData) {
     const monthName = new Date(previewYear, previewMonth).toLocaleString('default', { month: 'long' });
 
     let html = `
         <div class="calendar-nav">
-            <button class="nav-btn" id="prev-month-btn"> &lt; </button>
+            <button class="nav-btn prev-month-btn"> &lt; </button>
             <h2>${escapeHtml(locationData.name || currentLocationId)}<br>${monthName} ${previewYear}</h2>
-            <button class="nav-btn" id="next-month-btn"> &gt; </button>
+            <button class="nav-btn next-month-btn"> &gt; </button>
         </div>
     `;
     html += `<div class="calendar-grid">`;
@@ -683,18 +712,41 @@ function renderPreview() {
         html += `</div>`;
     }
     html += `</div>`;
-    container.innerHTML = html;
+    return html;
+}
 
-    document.getElementById('prev-month-btn').addEventListener('click', () => {
+function wireNav(container) {
+    container.querySelector('.prev-month-btn').addEventListener('click', () => {
         previewMonth--;
         if (previewMonth < 0) { previewMonth = 11; previewYear--; }
         renderPreview();
     });
-    document.getElementById('next-month-btn').addEventListener('click', () => {
+    container.querySelector('.next-month-btn').addEventListener('click', () => {
         previewMonth++;
         if (previewMonth > 11) { previewMonth = 0; previewYear++; }
         renderPreview();
     });
+}
+
+function renderPreview() {
+    const desktopContainer = document.getElementById('preview-app');
+    const mobileContainer = document.getElementById('preview-app-mobile');
+
+    if (!currentLocationId || !data.locations[currentLocationId]) {
+        const msg = '<p class="empty-hint">Select a location to preview its calendar.</p>';
+        desktopContainer.innerHTML = msg;
+        mobileContainer.innerHTML = msg;
+        syncRawJson();
+        return;
+    }
+
+    const locationData = data.locations[currentLocationId];
+    const html = buildCalendarHtml(locationData);
+
+    desktopContainer.innerHTML = html;
+    mobileContainer.innerHTML = html;
+    wireNav(desktopContainer);
+    wireNav(mobileContainer);
 
     syncRawJson();
 }
