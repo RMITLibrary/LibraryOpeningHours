@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library Hours Editor</title>
+<style>
+    :root {
+        --rmit-blue: #000054;
+        --rmit-red: #E61E2A;
+        --light-grey: #f4f4f4;
+        --border-color: #ddd;
+        --today-bg: #fff9c4;
+        --ok-green: #1a7a3c;
+    }
+    * { box-sizing: border-box; }
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+        color: #333;
+        margin: 0;
+        padding: 0 20px 60px;
+        background: #fafafa;
+    }
+    header {
+        border-bottom: 3px solid var(--rmit-red);
+        padding: 16px 0 10px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; color: var(--rmit-blue); }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    button, .file-btn {
+        background-color: var(--rmit-blue);
+        color: white;
+        border: none;
+        padding: 9px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.85em;
+    }
+    button:hover, .file-btn:hover { background-color: #00007a; }
+    button.secondary { background-color: #666; }
+    button.secondary:hover { background-color: #444; }
+    button.danger { background-color: var(--rmit-red); }
+    button.danger:hover { background-color: #b8151f; }
+    button.small { padding: 4px 8px; font-size: 0.75em; }
+    input[type=file] { display: none; }
+    #status-msg { font-size: 0.85em; padding: 4px 10px; border-radius: 4px; }
+    #status-msg.ok { color: var(--ok-green); }
+    #status-msg.err { color: var(--rmit-red); font-weight: bold; }
+
+    .layout {
+        display: grid;
+        grid-template-columns: 220px 1fr 360px;
+        gap: 16px;
+        align-items: start;
+    }
+    @media (max-width: 1100px) {
+        .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px;
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 1.05rem; color: var(--rmit-blue); }
+    .panel h3 { margin: 16px 0 8px; font-size: 0.95rem; color: var(--rmit-blue); border-top: 1px solid var(--border-color); padding-top: 12px; }
+
+    #location-list { list-style: none; margin: 0; padding: 0; }
+    #location-list li {
+        padding: 8px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 4px;
+        font-size: 0.9em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    #location-list li:hover { background: var(--light-grey); }
+    #location-list li.active { background: var(--rmit-blue); color: white; }
+    #location-list li .loc-id { font-size: 0.75em; opacity: 0.7; }
+
+    table.hours-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+    table.hours-table th, table.hours-table td { border: 1px solid var(--border-color); padding: 4px 6px; text-align: left; }
+    table.hours-table th { background: var(--light-grey); }
+    table.hours-table input[type=text] { width: 100%; border: 1px solid #ccc; border-radius: 3px; padding: 3px 4px; font-size: 1em; }
+    table.hours-table input[type=checkbox] { transform: scale(1.1); }
+    .day-label { font-weight: bold; white-space: nowrap; }
+
+    .range-card, .exception-row {
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #fcfcfc;
+    }
+    .range-card-header, .exception-row-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .range-card-header input[type=text] { flex: 1; font-weight: bold; padding: 5px 6px; border: 1px solid #ccc; border-radius: 3px; }
+    .range-dates { display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.85em; }
+    .range-dates label { display: flex; flex-direction: column; gap: 2px; }
+    .range-dates input { padding: 4px; border: 1px solid #ccc; border-radius: 3px; }
+    .range-note, .exception-note { width: 100%; padding: 5px 6px; border: 1px solid #ccc; border-radius: 3px; margin-top: 6px; font-size: 0.85em; }
+
+    .exception-row-header { flex-wrap: wrap; }
+    .exception-row input[type=date] { padding: 5px; border: 1px solid #ccc; border-radius: 3px; }
+    .exception-hours { display: flex; gap: 8px; align-items: center; margin-top: 6px; font-size: 0.85em; flex-wrap: wrap; }
+    .exception-hours input[type=text] { padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; width: 110px; }
+    .checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85em; white-space: nowrap; }
+
+    .empty-hint { color: #888; font-style: italic; font-size: 0.85em; padding: 8px 0; }
+
+    /* Preview calendar (mirrors index.html rendering) */
+    .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .calendar-nav h2 { margin: 0; font-size: 1rem; color: var(--rmit-blue); }
+    .nav-btn { background-color: var(--rmit-blue); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8em; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background-color: var(--border-color); border: 1px solid var(--border-color); font-size: 0.68em; }
+    .grid-header { background-color: var(--rmit-blue); color: white; padding: 4px 2px; text-align: center; font-weight: bold; }
+    .day { background-color: white; min-height: 58px; padding: 4px; display: flex; flex-direction: column; }
+    .day.empty { background-color: #fafafa; }
+    .day.today { background-color: var(--today-bg); outline: 2px solid #FAC800; z-index: 1; }
+    .date-num { font-weight: bold; margin-bottom: 2px; }
+    .hours { color: #444; }
+    .status-closed { color: var(--rmit-red); font-weight: bold; }
+    .note { font-style: italic; color: #666; margin-top: auto; padding-top: 2px; }
+
+    textarea#raw-json { width: 100%; height: 260px; font-family: Menlo, Consolas, monospace; font-size: 0.78em; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; }
+    #raw-json-status { font-size: 0.8em; margin-top: 6px; }
+    details.raw-panel summary { cursor: pointer; font-weight: bold; color: var(--rmit-blue); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Library Hours Editor</h1>
+    <div class="toolbar">
+        <label class="file-btn" for="file-input">Load hours.txt</label>
+        <input type="file" id="file-input" accept=".txt,.json,application/json">
+        <button id="new-btn" class="secondary">Start Blank</button>
+        <button id="download-btn">Download hours.txt</button>
+        <span id="status-msg"></span>
+    </div>
+</header>
+
+<div class="layout">
+    <div class="panel" id="locations-panel">
+        <h2>Locations</h2>
+        <ul id="location-list"></ul>
+        <button id="add-location-btn" class="small" style="margin-top:8px; width:100%;">+ Add Location</button>
+    </div>
+
+    <div class="panel" id="editor-panel">
+        <h2 id="editor-title">No location selected</h2>
+        <div id="editor-body"><p class="empty-hint">Load hours.txt, or add a location, to begin editing.</p></div>
+    </div>
+
+    <div class="panel" id="preview-panel">
+        <h2>Preview</h2>
+        <div id="preview-app"></div>
+        <details class="raw-panel" style="margin-top:16px;">
+            <summary>Raw JSON (advanced)</summary>
+            <textarea id="raw-json" spellcheck="false"></textarea>
+            <div id="raw-json-status"></div>
+            <button id="apply-raw-btn" class="small secondary" style="margin-top:6px;">Apply JSON above</button>
+        </details>
+    </div>
+</div>
+
+<script>
+const DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+const DAY_LABELS = { mon:'Mon', tue:'Tue', wed:'Wed', thu:'Thu', fri:'Fri', sat:'Sat', sun:'Sun' };
+
+let data = { locations: {} };
+let currentLocationId = null;
+let previewYear = new Date().getFullYear();
+let previewMonth = new Date().getMonth();
+
+function blankDay() { return { open: '', close: '' }; }
+function blankDefaults() {
+    const d = {};
+    DAYS.forEach(k => d[k] = blankDay());
+    return d;
+}
+function blankLocation(name) {
+    return { name: name || 'New Location', defaults: blankDefaults(), ranges: [], exceptions: {} };
+}
+
+function setStatus(msg, isError) {
+    const el = document.getElementById('status-msg');
+    el.textContent = msg;
+    el.className = isError ? 'err' : 'ok';
+    if (!isError) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 4000);
+}
+
+function slugify(str) {
+    return String(str).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'location';
+}
+function uniqueId(base) {
+    let id = base, n = 2;
+    while (data.locations[id]) { id = base + '-' + n; n++; }
+    return id;
+}
+
+/* ---------- File load / save ---------- */
+
+document.getElementById('file-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const parsed = JSON.parse(reader.result);
+            if (!parsed || typeof parsed !== 'object' || !parsed.locations) {
+                throw new Error('File does not contain a "locations" object.');
+            }
+            data = parsed;
+            currentLocationId = Object.keys(data.locations)[0] || null;
+            renderAll();
+            setStatus('Loaded ' + file.name);
+        } catch (err) {
+            setStatus('Could not parse file: ' + err.message, true);
+        }
+    };
+    reader.onerror = () => setStatus('Could not read file.', true);
+    reader.readAsText(file);
+    e.target.value = '';
+});
+
+document.getElementById('new-btn').addEventListener('click', () => {
+    if (Object.keys(data.locations).length && !confirm('Discard current data and start a blank file?')) return;
+    data = { locations: {} };
+    currentLocationId = null;
+    renderAll();
+    setStatus('Started a blank file.');
+});
+
+document.getElementById('download-btn').addEventListener('click', () => {
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hours.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setStatus('hours.txt downloaded. Upload it to the server to publish.');
+});
+
+/* Drag and drop onto the page */
+document.body.addEventListener('dragover', (e) => e.preventDefault());
+document.body.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const parsed = JSON.parse(reader.result);
+            if (!parsed || typeof parsed !== 'object' || !parsed.locations) throw new Error('File does not contain a "locations" object.');
+            data = parsed;
+            currentLocationId = Object.keys(data.locations)[0] || null;
+            renderAll();
+            setStatus('Loaded ' + file.name);
+        } catch (err) {
+            setStatus('Could not parse file: ' + err.message, true);
+        }
+    };
+    reader.readAsText(file);
+});
+
+/* ---------- Location list ---------- */
+
+document.getElementById('add-location-btn').addEventListener('click', () => {
+    const name = prompt('Name for the new location (e.g. "Carlton Library"):');
+    if (!name) return;
+    const id = uniqueId(slugify(name));
+    data.locations[id] = blankLocation(name);
+    currentLocationId = id;
+    renderAll();
+});
+
+function renderLocationList() {
+    const ul = document.getElementById('location-list');
+    ul.innerHTML = '';
+    Object.keys(data.locations).forEach(id => {
+        const loc = data.locations[id];
+        const li = document.createElement('li');
+        li.className = id === currentLocationId ? 'active' : '';
+        li.innerHTML = `<span>${escapeHtml(loc.name || id)}<br><span class="loc-id">${escapeHtml(id)}</span></span>`;
+        li.addEventListener('click', () => { currentLocationId = id; renderAll(); });
+        ul.appendChild(li);
+    });
+}
+
+/* ---------- Location editor ---------- */
+
+function renderEditor() {
+    const title = document.getElementById('editor-title');
+    const body = document.getElementById('editor-body');
+
+    if (!currentLocationId || !data.locations[currentLocationId]) {
+        title.textContent = 'No location selected';
+        body.innerHTML = '<p class="empty-hint">Load hours.txt, or add a location, to begin editing.</p>';
+        return;
+    }
+
+    const loc = data.locations[currentLocationId];
+    title.textContent = loc.name || currentLocationId;
+    body.innerHTML = '';
+
+    /* Name / id / delete row */
+    const meta = document.createElement('div');
+    meta.innerHTML = `
+        <label style="display:block; font-size:0.85em; font-weight:bold; margin-bottom:4px;">Display name</label>
+        <input type="text" id="loc-name-input" value="${escapeAttr(loc.name || '')}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:3px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8em; color:#666;">
+            <span>ID: <code>${escapeHtml(currentLocationId)}</code></span>
+            <span style="display:flex; gap:6px;">
+                <button class="small secondary" id="rename-id-btn">Rename ID</button>
+                <button class="small danger" id="delete-loc-btn">Delete Location</button>
+            </span>
+        </div>
+    `;
+    body.appendChild(meta);
+    document.getElementById('loc-name-input').addEventListener('input', (e) => {
+        loc.name = e.target.value;
+        renderLocationList();
+        renderPreview();
+    });
+    document.getElementById('rename-id-btn').addEventListener('click', () => {
+        const newId = prompt('New ID (letters/numbers/dashes, must be unique):', currentLocationId);
+        if (!newId || newId === currentLocationId) return;
+        const slug = slugify(newId);
+        if (data.locations[slug]) { alert('That ID is already in use.'); return; }
+        const entry = data.locations[currentLocationId];
+        delete data.locations[currentLocationId];
+        data.locations[slug] = entry;
+        currentLocationId = slug;
+        renderAll();
+    });
+    document.getElementById('delete-loc-btn').addEventListener('click', () => {
+        if (!confirm(`Delete "${loc.name || currentLocationId}"? This cannot be undone.`)) return;
+        delete data.locations[currentLocationId];
+        currentLocationId = Object.keys(data.locations)[0] || null;
+        renderAll();
+    });
+
+    /* Defaults */
+    const defaultsHeading = document.createElement('h3');
+    defaultsHeading.textContent = 'Default weekly hours';
+    body.appendChild(defaultsHeading);
+    body.appendChild(buildDayTable(loc.defaults, () => renderPreview()));
+
+    /* Ranges */
+    const rangesHeading = document.createElement('h3');
+    rangesHeading.textContent = 'Date ranges (overrides, e.g. exam period, closedown)';
+    body.appendChild(rangesHeading);
+    const rangesContainer = document.createElement('div');
+    rangesContainer.id = 'ranges-container';
+    body.appendChild(rangesContainer);
+    renderRanges(loc, rangesContainer);
+    const addRangeBtn = document.createElement('button');
+    addRangeBtn.className = 'small';
+    addRangeBtn.textContent = '+ Add Date Range';
+    addRangeBtn.addEventListener('click', () => {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        loc.ranges = loc.ranges || [];
+        loc.ranges.push({
+            name: 'New range',
+            start: todayStr,
+            end: todayStr,
+            hours: cloneDays(loc.defaults),
+            note: ''
+        });
+        renderRanges(loc, rangesContainer);
+        renderPreview();
+    });
+    body.appendChild(addRangeBtn);
+
+    /* Exceptions */
+    const exHeading = document.createElement('h3');
+    exHeading.textContent = 'Single-day exceptions (e.g. public holidays)';
+    body.appendChild(exHeading);
+    const exContainer = document.createElement('div');
+    exContainer.id = 'exceptions-container';
+    body.appendChild(exContainer);
+    renderExceptions(loc, exContainer);
+    const addExBtn = document.createElement('button');
+    addExBtn.className = 'small';
+    addExBtn.textContent = '+ Add Exception';
+    addExBtn.addEventListener('click', () => {
+        loc.exceptions = loc.exceptions || {};
+        let d = new Date();
+        let key = d.toISOString().slice(0, 10);
+        while (loc.exceptions[key]) { d.setDate(d.getDate() + 1); key = d.toISOString().slice(0, 10); }
+        loc.exceptions[key] = { status: 'closed', note: '' };
+        renderExceptions(loc, exContainer);
+        renderPreview();
+    });
+    body.appendChild(addExBtn);
+}
+
+function cloneDays(daysObj) {
+    const out = {};
+    DAYS.forEach(k => out[k] = Object.assign({}, daysObj && daysObj[k] ? daysObj[k] : blankDay()));
+    return out;
+}
+
+function buildDayTable(daysObj, onChange) {
+    const table = document.createElement('table');
+    table.className = 'hours-table';
+    table.innerHTML = `<thead><tr><th>Day</th><th>Closed</th><th>Open</th><th>Close</th><th>Note</th></tr></thead>`;
+    const tbody = document.createElement('tbody');
+    DAYS.forEach(day => {
+        if (!daysObj[day]) daysObj[day] = blankDay();
+        const entry = daysObj[day];
+        const isClosed = entry.status === 'closed';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="day-label">${DAY_LABELS[day]}</td>
+            <td style="text-align:center;"><input type="checkbox" class="closed-cb" ${isClosed ? 'checked' : ''}></td>
+            <td><input type="text" class="open-input" value="${escapeAttr(entry.open || '')}" placeholder="e.g. 8am" ${isClosed ? 'disabled' : ''}></td>
+            <td><input type="text" class="close-input" value="${escapeAttr(entry.close || '')}" placeholder="e.g. 8pm" ${isClosed ? 'disabled' : ''}></td>
+            <td><input type="text" class="note-input" value="${escapeAttr(entry.note || '')}" placeholder="optional"></td>
+        `;
+        const closedCb = tr.querySelector('.closed-cb');
+        const openInput = tr.querySelector('.open-input');
+        const closeInput = tr.querySelector('.close-input');
+        const noteInput = tr.querySelector('.note-input');
+
+        closedCb.addEventListener('change', () => {
+            if (closedCb.checked) {
+                entry.status = 'closed';
+                delete entry.open;
+                delete entry.close;
+                openInput.disabled = true;
+                closeInput.disabled = true;
+            } else {
+                delete entry.status;
+                entry.open = openInput.value;
+                entry.close = closeInput.value;
+                openInput.disabled = false;
+                closeInput.disabled = false;
+            }
+            onChange();
+        });
+        openInput.addEventListener('input', () => { entry.open = openInput.value; onChange(); });
+        closeInput.addEventListener('input', () => { entry.close = closeInput.value; onChange(); });
+        noteInput.addEventListener('input', () => {
+            if (noteInput.value) entry.note = noteInput.value; else delete entry.note;
+            onChange();
+        });
+
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    return table;
+}
+
+function renderRanges(loc, container) {
+    container.innerHTML = '';
+    loc.ranges = loc.ranges || [];
+    if (!loc.ranges.length) {
+        container.innerHTML = '<p class="empty-hint">No date ranges yet.</p>';
+        return;
+    }
+    loc.ranges.forEach((range, idx) => {
+        const card = document.createElement('div');
+        card.className = 'range-card';
+
+        const header = document.createElement('div');
+        header.className = 'range-card-header';
+        header.innerHTML = `<input type="text" class="range-name-input" value="${escapeAttr(range.name || '')}" placeholder="Range name (e.g. Exam period)">
+            <button class="small danger remove-range-btn">Remove</button>`;
+        card.appendChild(header);
+
+        const dates = document.createElement('div');
+        dates.className = 'range-dates';
+        dates.innerHTML = `
+            <label>Start <input type="date" class="range-start-input" value="${escapeAttr(range.start || '')}"></label>
+            <label>End <input type="date" class="range-end-input" value="${escapeAttr(range.end || '')}"></label>
+        `;
+        card.appendChild(dates);
+
+        range.hours = range.hours || cloneDays(loc.defaults);
+        card.appendChild(buildDayTable(range.hours, () => renderPreview()));
+
+        const noteInput = document.createElement('input');
+        noteInput.type = 'text';
+        noteInput.className = 'range-note';
+        noteInput.placeholder = 'Note shown on days in this range (e.g. "Extended Hours")';
+        noteInput.value = range.note || '';
+        card.appendChild(noteInput);
+
+        header.querySelector('.range-name-input').addEventListener('input', (e) => { range.name = e.target.value; renderPreview(); });
+        header.querySelector('.remove-range-btn').addEventListener('click', () => {
+            if (!confirm(`Remove range "${range.name || 'Untitled'}"?`)) return;
+            loc.ranges.splice(idx, 1);
+            renderRanges(loc, container);
+            renderPreview();
+        });
+        dates.querySelector('.range-start-input').addEventListener('input', (e) => { range.start = e.target.value; renderPreview(); });
+        dates.querySelector('.range-end-input').addEventListener('input', (e) => { range.end = e.target.value; renderPreview(); });
+        noteInput.addEventListener('input', () => { range.note = noteInput.value; renderPreview(); });
+
+        container.appendChild(card);
+    });
+}
+
+function renderExceptions(loc, container) {
+    container.innerHTML = '';
+    loc.exceptions = loc.exceptions || {};
+    const dateKeys = Object.keys(loc.exceptions).sort();
+    if (!dateKeys.length) {
+        container.innerHTML = '<p class="empty-hint">No single-day exceptions yet.</p>';
+        return;
+    }
+    dateKeys.forEach(dateKey => {
+        const entry = loc.exceptions[dateKey];
+        const row = document.createElement('div');
+        row.className = 'exception-row';
+
+        const isClosed = entry.status === 'closed';
+        const header = document.createElement('div');
+        header.className = 'exception-row-header';
+        header.innerHTML = `
+            <input type="date" class="ex-date-input" value="${escapeAttr(dateKey)}">
+            <label class="checkbox-label"><input type="checkbox" class="ex-closed-cb" ${isClosed ? 'checked' : ''}> Closed</label>
+            <button class="small danger remove-ex-btn" style="margin-left:auto;">Remove</button>
+        `;
+        row.appendChild(header);
+
+        const hoursRow = document.createElement('div');
+        hoursRow.className = 'exception-hours';
+        hoursRow.innerHTML = `
+            <input type="text" class="ex-open-input" placeholder="Open (e.g. 8am)" value="${escapeAttr(entry.open || '')}" ${isClosed ? 'disabled' : ''}>
+            <input type="text" class="ex-close-input" placeholder="Close (e.g. 8pm)" value="${escapeAttr(entry.close || '')}" ${isClosed ? 'disabled' : ''}>
+        `;
+        row.appendChild(hoursRow);
+
+        const noteInput = document.createElement('input');
+        noteInput.type = 'text';
+        noteInput.className = 'exception-note';
+        noteInput.placeholder = 'Note (e.g. "Public holiday")';
+        noteInput.value = entry.note || '';
+        row.appendChild(noteInput);
+
+        const dateInput = header.querySelector('.ex-date-input');
+        const closedCb = header.querySelector('.ex-closed-cb');
+        const openInput = hoursRow.querySelector('.ex-open-input');
+        const closeInput = hoursRow.querySelector('.ex-close-input');
+
+        dateInput.addEventListener('change', () => {
+            const newKey = dateInput.value;
+            if (!newKey || newKey === dateKey) return;
+            if (loc.exceptions[newKey]) { alert('An exception already exists for that date.'); dateInput.value = dateKey; return; }
+            delete loc.exceptions[dateKey];
+            loc.exceptions[newKey] = entry;
+            renderExceptions(loc, container);
+            renderPreview();
+        });
+        closedCb.addEventListener('change', () => {
+            if (closedCb.checked) {
+                entry.status = 'closed';
+                delete entry.open;
+                delete entry.close;
+                openInput.disabled = true;
+                closeInput.disabled = true;
+            } else {
+                delete entry.status;
+                entry.open = openInput.value;
+                entry.close = closeInput.value;
+                openInput.disabled = false;
+                closeInput.disabled = false;
+            }
+            renderPreview();
+        });
+        openInput.addEventListener('input', () => { entry.open = openInput.value; renderPreview(); });
+        closeInput.addEventListener('input', () => { entry.close = closeInput.value; renderPreview(); });
+        noteInput.addEventListener('input', () => {
+            if (noteInput.value) entry.note = noteInput.value; else delete entry.note;
+            renderPreview();
+        });
+        header.querySelector('.remove-ex-btn').addEventListener('click', () => {
+            delete loc.exceptions[dateKey];
+            renderExceptions(loc, container);
+            renderPreview();
+        });
+
+        container.appendChild(row);
+    });
+}
+
+/* ---------- Preview (mirrors index.html's LibraryHours logic) ---------- */
+
+function getHoursForDate(locationId, dateObj) {
+    const location = data.locations[locationId];
+    if (!location) return null;
+
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    const dateKey = `${y}-${m}-${d}`;
+
+    const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const dayName = daysOfWeek[dateObj.getDay()];
+
+    if (location.exceptions && location.exceptions[dateKey]) {
+        return location.exceptions[dateKey];
+    }
+
+    if (location.ranges) {
+        for (let range of location.ranges) {
+            if (!range.start || !range.end) continue;
+            const start = new Date(range.start + 'T00:00:00');
+            const end = new Date(range.end + 'T23:59:59');
+            if (dateObj >= start && dateObj <= end) {
+                const rangeDayInfo = range.hours ? range.hours[dayName] : null;
+                return Object.assign({}, rangeDayInfo, { note: range.note });
+            }
+        }
+    }
+
+    return location.defaults ? location.defaults[dayName] : null;
+}
+
+function renderPreview() {
+    const container = document.getElementById('preview-app');
+    if (!currentLocationId || !data.locations[currentLocationId]) {
+        container.innerHTML = '<p class="empty-hint">Select a location to preview its calendar.</p>';
+        return;
+    }
+    const locationData = data.locations[currentLocationId];
+    const monthName = new Date(previewYear, previewMonth).toLocaleString('default', { month: 'long' });
+
+    let html = `
+        <div class="calendar-nav">
+            <button class="nav-btn" id="prev-month-btn"> &lt; </button>
+            <h2>${escapeHtml(locationData.name || currentLocationId)}<br>${monthName} ${previewYear}</h2>
+            <button class="nav-btn" id="next-month-btn"> &gt; </button>
+        </div>
+    `;
+    html += `<div class="calendar-grid">`;
+    const dayNames = ['S','M','T','W','T','F','S'];
+    dayNames.forEach(d => html += `<div class="grid-header">${d}</div>`);
+
+    const firstDay = new Date(previewYear, previewMonth, 1);
+    const lastDay = new Date(previewYear, previewMonth + 1, 0);
+
+    for (let i = 0; i < firstDay.getDay(); i++) {
+        html += `<div class="day empty"></div>`;
+    }
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+        const current = new Date(previewYear, previewMonth, d);
+        const dayInfo = getHoursForDate(currentLocationId, current);
+        const isToday = current.toDateString() === new Date().toDateString() ? 'today' : '';
+
+        html += `<div class="day ${isToday}"><span class="date-num">${d}</span>`;
+        if (dayInfo && dayInfo.status === 'closed') {
+            html += `<span class="status-closed">Closed</span>`;
+        } else if (dayInfo) {
+            html += `<span class="hours">${escapeHtml(dayInfo.open || '')} - ${escapeHtml(dayInfo.close || '')}</span>`;
+        }
+        if (dayInfo && dayInfo.note) {
+            html += `<span class="note">${escapeHtml(dayInfo.note)}</span>`;
+        }
+        html += `</div>`;
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+
+    document.getElementById('prev-month-btn').addEventListener('click', () => {
+        previewMonth--;
+        if (previewMonth < 0) { previewMonth = 11; previewYear--; }
+        renderPreview();
+    });
+    document.getElementById('next-month-btn').addEventListener('click', () => {
+        previewMonth++;
+        if (previewMonth > 11) { previewMonth = 0; previewYear++; }
+        renderPreview();
+    });
+
+    syncRawJson();
+}
+
+/* ---------- Raw JSON panel ---------- */
+
+function syncRawJson() {
+    const ta = document.getElementById('raw-json');
+    if (document.activeElement !== ta) {
+        ta.value = JSON.stringify(data, null, 2);
+    }
+    document.getElementById('raw-json-status').textContent = '';
+}
+
+document.getElementById('apply-raw-btn').addEventListener('click', () => {
+    const ta = document.getElementById('raw-json');
+    const statusEl = document.getElementById('raw-json-status');
+    try {
+        const parsed = JSON.parse(ta.value);
+        if (!parsed || typeof parsed !== 'object' || !parsed.locations) throw new Error('Must contain a "locations" object.');
+        data = parsed;
+        if (!data.locations[currentLocationId]) currentLocationId = Object.keys(data.locations)[0] || null;
+        renderAll();
+        statusEl.textContent = 'Applied.';
+        statusEl.style.color = 'var(--ok-green)';
+    } catch (err) {
+        statusEl.textContent = 'Invalid JSON: ' + err.message;
+        statusEl.style.color = 'var(--rmit-red)';
+    }
+});
+
+/* ---------- Utilities ---------- */
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+function escapeAttr(str) { return escapeHtml(str); }
+
+function renderAll() {
+    renderLocationList();
+    renderEditor();
+    renderPreview();
+}
+
+renderAll();
+</script>
+</body>
+</html>
