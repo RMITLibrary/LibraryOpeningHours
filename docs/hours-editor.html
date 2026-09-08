@@ -8,10 +8,12 @@
     :root {
         --rmit-blue: #000054;
         --rmit-red: #E61E2A;
+        --rmit-red-text: #a6121b; /* WCAG AAA-safe (7:1+) variant of --rmit-red for text/button backgrounds */
+        --text-grey: #525252; /* WCAG AAA-safe (7:1+) muted text grey */
         --light-grey: #f4f4f4;
         --border-color: #ddd;
         --today-bg: #fff9c4;
-        --ok-green: #1a7a3c;
+        --ok-green: #145f2f; /* darkened to meet WCAG AAA (7:1+) on white */
     }
     * { box-sizing: border-box; }
     body {
@@ -45,15 +47,23 @@
         font-size: 0.85em;
     }
     button:hover, .file-btn:hover { background-color: #00007a; }
-    button.secondary { background-color: #666; }
-    button.secondary:hover { background-color: #444; }
-    button.danger { background-color: var(--rmit-red); }
-    button.danger:hover { background-color: #b8151f; }
+    button.secondary { background-color: var(--text-grey); }
+    button.secondary:hover { background-color: #3a3a3a; }
+    button.danger { background-color: var(--rmit-red-text); }
+    button.danger:hover { background-color: #7a0d14; }
     button.small { padding: 4px 8px; font-size: 0.75em; }
-    input[type=file] { display: none; }
     #status-msg { font-size: 0.85em; padding: 4px 10px; border-radius: 4px; }
     #status-msg.ok { color: var(--ok-green); }
-    #status-msg.err { color: var(--rmit-red); font-weight: bold; }
+    #status-msg.err { color: var(--rmit-red-text); font-weight: bold; }
+    .visually-hidden {
+        position: absolute;
+        width: 1px; height: 1px;
+        padding: 0; margin: -1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+        white-space: nowrap;
+        border: 0;
+    }
 
     .layout {
         display: grid;
@@ -75,19 +85,26 @@
     .panel h3 { margin: 16px 0 8px; font-size: 0.95rem; color: var(--rmit-blue); border-top: 1px solid var(--border-color); padding-top: 12px; }
 
     #location-list { list-style: none; margin: 0; padding: 0; }
-    #location-list li {
+    #location-list li { margin-bottom: 4px; }
+    #location-list .loc-btn {
+        width: 100%;
+        background: none;
+        border: none;
+        font: inherit;
+        color: inherit;
+        text-align: left;
         padding: 8px 10px;
         border-radius: 4px;
         cursor: pointer;
-        margin-bottom: 4px;
         font-size: 0.9em;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    #location-list li:hover { background: var(--light-grey); }
-    #location-list li.active { background: var(--rmit-blue); color: white; }
-    #location-list li .loc-id { font-size: 0.75em; opacity: 0.7; }
+    #location-list .loc-btn:hover { background: var(--light-grey); }
+    #location-list li.active .loc-btn { background: var(--rmit-blue); color: white; }
+    #location-list li .loc-id { font-size: 0.75em; color: var(--text-grey); }
+    #location-list li.active .loc-id { color: white; }
 
     table.hours-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
     table.hours-table th, table.hours-table td { border: 1px solid var(--border-color); padding: 4px 6px; text-align: left; }
@@ -122,7 +139,7 @@
     .exception-hours input[type=text] { padding: 4px 6px; border: 1px solid #ccc; border-radius: 3px; width: 110px; }
     .checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85em; white-space: nowrap; }
 
-    .empty-hint { color: #888; font-style: italic; font-size: 0.85em; padding: 8px 0; }
+    .empty-hint { color: var(--text-grey); font-style: italic; font-size: 0.85em; padding: 8px 0; }
 
     /* Preview calendar (mirrors index.html rendering) */
     .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -135,8 +152,8 @@
     .day.today { background-color: var(--today-bg); outline: 2px solid #FAC800; z-index: 1; }
     .date-num { font-weight: bold; margin-bottom: 2px; }
     .hours { color: #444; }
-    .status-closed { color: var(--rmit-red); font-weight: bold; }
-    .note { font-style: italic; color: #666; margin-top: auto; padding-top: 2px; }
+    .status-closed { color: var(--rmit-red-text); font-weight: bold; }
+    .note { font-style: italic; color: var(--text-grey); margin-top: auto; padding-top: 2px; }
 
     /* Mobile viewport preview: forces the same mobile CSS index.html applies
        at max-width:600px, inside a fixed-width phone frame regardless of
@@ -175,8 +192,8 @@
 <header>
     <h1>Library Hours Editor</h1>
     <div class="toolbar">
-        <label class="file-btn" for="file-input">Load hours.txt</label>
-        <input type="file" id="file-input" accept=".txt,.json,application/json">
+        <button type="button" class="file-btn" id="load-btn">Load hours.txt</button>
+        <input type="file" id="file-input" accept=".txt,.json,application/json" hidden>
         <button id="new-btn" class="secondary">Start Blank</button>
         <button id="download-btn">Download hours.txt</button>
         <span id="status-msg"></span>
@@ -208,7 +225,7 @@
 
         <details class="raw-panel" style="margin-top:16px;">
             <summary>Raw JSON (advanced)</summary>
-            <textarea id="raw-json" spellcheck="false"></textarea>
+            <textarea id="raw-json" spellcheck="false" aria-label="Raw JSON data"></textarea>
             <div id="raw-json-status"></div>
             <button id="apply-raw-btn" class="small secondary" style="margin-top:6px;">Apply JSON above</button>
         </details>
@@ -251,6 +268,10 @@ function uniqueId(base) {
 }
 
 /* ---------- File load / save ---------- */
+
+document.getElementById('load-btn').addEventListener('click', () => {
+    document.getElementById('file-input').click();
+});
 
 document.getElementById('file-input').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -337,8 +358,13 @@ function renderLocationList() {
         const loc = data.locations[id];
         const li = document.createElement('li');
         li.className = id === currentLocationId ? 'active' : '';
-        li.innerHTML = `<span>${escapeHtml(loc.name || id)}<br><span class="loc-id">${escapeHtml(id)}</span></span>`;
-        li.addEventListener('click', () => { currentLocationId = id; renderAll(); });
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'loc-btn';
+        btn.setAttribute('aria-current', id === currentLocationId ? 'true' : 'false');
+        btn.innerHTML = `<span>${escapeHtml(loc.name || id)}<br><span class="loc-id">${escapeHtml(id)}</span></span>`;
+        btn.addEventListener('click', () => { currentLocationId = id; renderAll(); });
+        li.appendChild(btn);
         ul.appendChild(li);
     });
 }
@@ -362,9 +388,9 @@ function renderEditor() {
     /* Name / id / delete row */
     const meta = document.createElement('div');
     meta.innerHTML = `
-        <label style="display:block; font-size:0.85em; font-weight:bold; margin-bottom:4px;">Display name</label>
+        <label for="loc-name-input" style="display:block; font-size:0.85em; font-weight:bold; margin-bottom:4px;">Display name</label>
         <input type="text" id="loc-name-input" value="${escapeAttr(loc.name || '')}" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:3px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8em; color:#666;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8em; color:var(--text-grey);">
             <span>ID: <code>${escapeHtml(currentLocationId)}</code></span>
             <span style="display:flex; gap:6px;">
                 <button class="small secondary" id="rename-id-btn">Rename ID</button>
@@ -460,19 +486,20 @@ function cloneDays(daysObj) {
 function buildDayTable(daysObj, onChange) {
     const table = document.createElement('table');
     table.className = 'hours-table';
-    table.innerHTML = `<thead><tr><th>Day</th><th>Closed</th><th>Open</th><th>Close</th><th>Note</th></tr></thead>`;
+    table.innerHTML = `<thead><tr><th scope="col">Day</th><th scope="col">Closed</th><th scope="col">Open</th><th scope="col">Close</th><th scope="col">Note</th></tr></thead>`;
     const tbody = document.createElement('tbody');
     DAYS.forEach(day => {
         if (!daysObj[day]) daysObj[day] = blankDay();
         const entry = daysObj[day];
         const isClosed = entry.status === 'closed';
+        const label = DAY_LABELS[day];
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="day-label">${DAY_LABELS[day]}</td>
-            <td style="text-align:center;"><input type="checkbox" class="closed-cb" ${isClosed ? 'checked' : ''}></td>
-            <td><input type="text" class="open-input" value="${escapeAttr(entry.open || '')}" placeholder="e.g. 8am" ${isClosed ? 'disabled' : ''}></td>
-            <td><input type="text" class="close-input" value="${escapeAttr(entry.close || '')}" placeholder="e.g. 8pm" ${isClosed ? 'disabled' : ''}></td>
-            <td><input type="text" class="note-input" value="${escapeAttr(entry.note || '')}" placeholder="optional"></td>
+            <th scope="row" class="day-label">${label}</th>
+            <td style="text-align:center;"><input type="checkbox" class="closed-cb" aria-label="${label} closed" ${isClosed ? 'checked' : ''}></td>
+            <td><input type="text" class="open-input" aria-label="${label} opening time" value="${escapeAttr(entry.open || '')}" placeholder="e.g. 8am" ${isClosed ? 'disabled' : ''}></td>
+            <td><input type="text" class="close-input" aria-label="${label} closing time" value="${escapeAttr(entry.close || '')}" placeholder="e.g. 8pm" ${isClosed ? 'disabled' : ''}></td>
+            <td><input type="text" class="note-input" aria-label="${label} note" value="${escapeAttr(entry.note || '')}" placeholder="optional"></td>
         `;
         const closedCb = tr.querySelector('.closed-cb');
         const openInput = tr.querySelector('.open-input');
@@ -521,8 +548,8 @@ function renderRanges(loc, container) {
 
         const header = document.createElement('div');
         header.className = 'range-card-header';
-        header.innerHTML = `<input type="text" class="range-name-input" value="${escapeAttr(range.name || '')}" placeholder="Range name (e.g. Exam period)">
-            <button class="small danger remove-range-btn">Remove</button>`;
+        header.innerHTML = `<input type="text" class="range-name-input" aria-label="Range name" value="${escapeAttr(range.name || '')}" placeholder="Range name (e.g. Exam period)">
+            <button type="button" class="small danger remove-range-btn">Remove</button>`;
         card.appendChild(header);
 
         const dates = document.createElement('div');
@@ -539,6 +566,7 @@ function renderRanges(loc, container) {
         const noteInput = document.createElement('input');
         noteInput.type = 'text';
         noteInput.className = 'range-note';
+        noteInput.setAttribute('aria-label', 'Range note');
         noteInput.placeholder = 'Note shown on days in this range (e.g. "Extended Hours")';
         noteInput.value = range.note || '';
         card.appendChild(noteInput);
@@ -575,23 +603,24 @@ function renderExceptions(loc, container) {
         const header = document.createElement('div');
         header.className = 'exception-row-header';
         header.innerHTML = `
-            <input type="date" class="ex-date-input" value="${escapeAttr(dateKey)}">
+            <input type="date" class="ex-date-input" aria-label="Exception date" value="${escapeAttr(dateKey)}">
             <label class="checkbox-label"><input type="checkbox" class="ex-closed-cb" ${isClosed ? 'checked' : ''}> Closed</label>
-            <button class="small danger remove-ex-btn" style="margin-left:auto;">Remove</button>
+            <button type="button" class="small danger remove-ex-btn" style="margin-left:auto;">Remove</button>
         `;
         row.appendChild(header);
 
         const hoursRow = document.createElement('div');
         hoursRow.className = 'exception-hours';
         hoursRow.innerHTML = `
-            <input type="text" class="ex-open-input" placeholder="Open (e.g. 8am)" value="${escapeAttr(entry.open || '')}" ${isClosed ? 'disabled' : ''}>
-            <input type="text" class="ex-close-input" placeholder="Close (e.g. 8pm)" value="${escapeAttr(entry.close || '')}" ${isClosed ? 'disabled' : ''}>
+            <input type="text" class="ex-open-input" aria-label="Opening time" placeholder="Open (e.g. 8am)" value="${escapeAttr(entry.open || '')}" ${isClosed ? 'disabled' : ''}>
+            <input type="text" class="ex-close-input" aria-label="Closing time" placeholder="Close (e.g. 8pm)" value="${escapeAttr(entry.close || '')}" ${isClosed ? 'disabled' : ''}>
         `;
         row.appendChild(hoursRow);
 
         const noteInput = document.createElement('input');
         noteInput.type = 'text';
         noteInput.className = 'exception-note';
+        noteInput.setAttribute('aria-label', 'Exception note');
         noteInput.placeholder = 'Note (e.g. "Public holiday")';
         noteInput.value = entry.note || '';
         row.appendChild(noteInput);
@@ -680,9 +709,9 @@ function buildCalendarHtml(locationData) {
 
     let html = `
         <div class="calendar-nav">
-            <button class="nav-btn prev-month-btn"> &lt; </button>
+            <button type="button" class="nav-btn prev-month-btn" aria-label="Previous month"> &lt; </button>
             <h2>${escapeHtml(locationData.name || currentLocationId)}<br>${monthName} ${previewYear}</h2>
-            <button class="nav-btn next-month-btn"> &gt; </button>
+            <button type="button" class="nav-btn next-month-btn" aria-label="Next month"> &gt; </button>
         </div>
     `;
     html += `<div class="calendar-grid">`;
@@ -700,7 +729,7 @@ function buildCalendarHtml(locationData) {
         const dayInfo = getHoursForDate(currentLocationId, current);
         const isToday = current.toDateString() === new Date().toDateString() ? 'today' : '';
 
-        html += `<div class="day ${isToday}"><span class="date-num">${d}</span>`;
+        html += `<div class="day ${isToday}"><span class="date-num">${d}${isToday ? '<span class="visually-hidden"> (Today)</span>' : ''}</span>`;
         if (dayInfo && dayInfo.status === 'closed') {
             html += `<span class="status-closed">Closed</span>`;
         } else if (dayInfo) {
@@ -774,7 +803,7 @@ document.getElementById('apply-raw-btn').addEventListener('click', () => {
         statusEl.style.color = 'var(--ok-green)';
     } catch (err) {
         statusEl.textContent = 'Invalid JSON: ' + err.message;
-        statusEl.style.color = 'var(--rmit-red)';
+        statusEl.style.color = 'var(--rmit-red-text)';
     }
 });
 

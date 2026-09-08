@@ -8,6 +8,8 @@
         :root {
             --rmit-blue: #000054;
             --rmit-red: #E61E2A;
+            --rmit-red-text: #a6121b; /* WCAG AAA-safe (7:1+) variant of --rmit-red for text on light backgrounds */
+            --text-grey: #525252; /* WCAG AAA-safe (7:1+) muted text grey */
             --light-grey: #f4f4f4;
             --border-color: #ddd;
             --today-bg: #fff9c4;
@@ -110,11 +112,21 @@
 
         .date-num { font-weight: bold; margin-bottom: 5px; }
         .hours { font-size: 0.85em; color: #444; }
-        .status-closed { font-size: 0.85em; color: var(--rmit-red); font-weight: bold; }
-        .note { font-size: 0.75em; font-style: italic; color: #666; margin-top: auto; padding-top: 5px; }
+        .status-closed { font-size: 0.85em; color: var(--rmit-red-text); font-weight: bold; }
+        .note { font-size: 0.75em; font-style: italic; color: var(--text-grey); margin-top: auto; padding-top: 5px; }
 
         #loading-message { text-align: center; padding: 40px; font-style: italic; }
         .hidden { display: none; }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
 
         @media (max-width: 600px) {
             .calendar-grid { grid-template-columns: repeat(1, 1fr); }
@@ -203,9 +215,9 @@
 
             let html = `
                 <div class="calendar-nav">
-                    <button class="nav-btn" id="prev-month-btn"> &lt; Prev </button>
+                    <button class="nav-btn" id="prev-month-btn" aria-label="Previous month"> &lt; Prev </button>
                     <h2>${locationData.name}: ${monthName} ${year}</h2>
-                    <button class="nav-btn" id="next-month-btn"> Next &gt; </button>
+                    <button class="nav-btn" id="next-month-btn" aria-label="Next month"> Next &gt; </button>
                 </div>
             `;
 
@@ -224,10 +236,10 @@
                 const current = new Date(year, month, d);
                 const dayInfo = this.getHoursForDate(locationId, current);
                 const isToday = current.toDateString() === new Date().toDateString() ? 'today' : '';
-                
+
                 html += `<div class="day ${isToday}">
-                    <span class="date-num">${d}</span>`;
-                
+                    <span class="date-num">${d}${isToday ? '<span class="visually-hidden"> (Today)</span>' : ''}</span>`;
+
                 if (dayInfo && dayInfo.status === 'closed') {
                     html += `<span class="status-closed">Closed</span>`;
                 } else if (dayInfo) {

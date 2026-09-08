@@ -2,15 +2,22 @@
 
 This codebase powers the RMIT Library opening hours web display used on the Library homepage and the Library Hours and Locations page. It provides the authoritative public-facing display of opening hours for the Library’s campus locations, including day-by-day open and close times and operational notes. 
 
+## Status: two implementations in this repo
+
+This repo currently holds both the outgoing and incoming versions of the system:
+
+- **[`/docs/`](docs/) — current and future implementation (in draft).** A static, client-side rebuild published via GitHub Pages: a single flat data file (`hours.txt`) plus a plain HTML/JS renderer (`index.html`) and a standalone authoring tool (`hours-editor.html`). This is where active development is happening and where the system is heading.
+- **[`/2025/`](2025/) — pre-existing implementation, being phased out.** The live PHP + MySQL solution described below, embedded via iframe into Adobe Experience Manager. It is currently **causing CORS errors when embedded in AEM**, and RMIT has requested it be modified as a result — see [Current Known Issues](#current-known-issues). Treat `/2025/` as reference for existing behaviour to preserve or replace, not as a base for new features.
+
 ## Overview 
 
-The application is a long-running custom PHP and MySQL solution hosted on the lib Jaguar server. It queries a MySQL database containing one row per day for each relevant opening-hours record and renders that data as HTML/CSS for embedding into Adobe Experience Manager pages via iframe. 
+The `/2025/` application is a long-running custom PHP and MySQL solution hosted on the lib Jaguar server. It queries a MySQL database containing one row per day for each relevant opening-hours record and renders that data as HTML/CSS for embedding into Adobe Experience Manager pages via iframe. 
 
 The system exists because opening hours need to be updated dynamically and reliably, including for routine timetable changes, study hall and makerspace variations, events, staffing changes, emergency changes, and other short-notice service adjustments. 
 
-### 2026
+### 2026 rebuild (`/docs/`)
 
-Testing files are in /docs/ and published to github
+The replacement implementation is being drafted in `/docs/` and published to GitHub Pages from that folder. It moves away from the PHP/MySQL/iframe architecture toward a static data file (`hours.txt`) rendered client-side, in part to remove the cross-origin embedding problems described below.
 
 
 ## Key Files 
@@ -92,7 +99,13 @@ The phpMyAdmin structure view for the `brunswick_hours` table on `librprddb02.in
 
 The other campus locations (Swanston, Bundoora, Carlton) follow the same table structure with their own tables.
 
-## Current Known Issue 
+## Current Known Issues
+
+### CORS errors embedding `/2025/` in Adobe Experience Manager
+
+The `/2025/` PHP pages are embedded into AEM pages (`rmit.edu.au`) via iframe, and this is causing CORS errors in that embedding context. RMIT has requested that the `/2025/` implementation be modified to resolve this. This is the primary driver behind the `/docs/` rebuild, which serves a static, cross-origin-safe alternative instead of a live PHP/MySQL iframe.
+
+### Local Network Access prompts
 
 Some users receive a browser prompt asking whether to allow or block local network access when loading the Library homepage or opening-hours page. Reports indicate this occurs most often when users are connected to the RMIT VPN or the Brunswick campus Wi-Fi network. 
 
