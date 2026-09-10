@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMIT Library Hours - Test</title>
+    <style>
+        :root {
+            --rmit-blue: #000054;
+            --rmit-red: #E61E2A;
+            --rmit-red-text: #a6121b; /* WCAG AAA-safe (7:1+) variant of --rmit-red for text on light backgrounds */
+            --text-grey: #525252; /* WCAG AAA-safe (7:1+) muted text grey */
+            --light-grey: #f4f4f4;
+            --border-color: #ddd;
+            --today-bg: #fff9c4;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            /* removed from AEM version
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 20px;
+            */
+        }
+
+        .hours-header {
+            border-bottom: 3px solid var(--rmit-red);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .hours-controls {
+            background: var(--light-grey);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Calendar Navigation Bar */
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-nav h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--rmit-blue);
+        }
+
+        .nav-btn {
+            background-color: var(--rmit-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .nav-btn:hover {
+            background-color: #00007a;
+        }
+
+        /* Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: var(--border-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .grid-header {
+            background-color: var(--rmit-blue);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .day {
+            background-color: white;
+            min-height: 100px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .day.empty { background-color: #fafafa; }
+
+        .day.today {
+            background-color: var(--today-bg);
+            /* RMIT Yellow Highlight */
+            outline: 2px solid #FAC800;
+            z-index: 1;
+        }
+
+        .date-num { font-weight: bold; margin-bottom: 5px; }
+        .hours { font-size: 0.85em; color: #444; }
+        .status-closed { font-size: 0.85em; color: var(--rmit-red-text); font-weight: bold; }
+        .note { font-size: 0.75em; font-style: italic; color: var(--text-grey); margin-top: auto; padding-top: 5px; }
+
+        #loading-message { text-align: center; padding: 40px; font-style: italic; }
+        .hidden { display: none; }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 600px) {
+            .calendar-grid { grid-template-columns: repeat(1, 1fr); }
+            .grid-header { display: none; }
+            .day { min-height: auto; border-bottom: 1px solid var(--border-color); }
+            .calendar-nav h2 { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hours-header">
+        <h1>Library opening hours</h1>
+    </div>
+
+    <div class="hours-controls">
+        <label for="location-selector"><strong>Select Location:</strong></label>
+        <select id="location-selector">
+            <option value="swanston">Swanston Library</option>
+            <option value="bundoora">Bundoora Library</option>
+            <option value="brunswick">Brunswick Library</option>
+            <option value="carlton">Carlton Library</option>
+            <option value="makerspace">Makerspace</option>
+            <option value="askthelibrary">Ask the Library</option>
+        </select>
+    </div>
+
+    <div id="loading-message">Loading library data...</div>
+    
+    <div id="library-hours-app"></div>
+
+    <script>
+    class LibraryHours {
+        constructor(url) {
+            this.url = url;
+            this.data = null;
+        }
+
+        async init() {
+            try {
+                const response = await fetch(this.url + '?v=' + Date.now());
+                if (!response.ok) throw new Error('Failed to load JSON');
+                this.data = await response.json();
+            } catch (error) {
+                console.error("Initialization error:", error);
+                document.getElementById('loading-message').innerHTML = "Error loading hours.";
+            }
+        }
+
+        getHoursForDate(locationId, dateObj) {
+            const location = this.data.locations[locationId];
+            if (!location) return null;
+
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            const dateKey = `${y}-${m}-${d}`;
+            
+            const daysOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const dayName = daysOfWeek[dateObj.getDay()];
+
+            if (location.exceptions && location.exceptions[dateKey]) {
+                return location.exceptions[dateKey];
+            }
+
+            if (location.ranges) {
+                for (let range of location.ranges) {
+                    const start = new Date(range.start + 'T00:00:00');
+                    const end = new Date(range.end + 'T23:59:59');
+                    if (dateObj >= start && dateObj <= end) {
+                        const rangeDayInfo = range.hours[dayName];
+                        return { ...rangeDayInfo, note: range.note };
+                    }
+                }
+            }
+
+            return location.defaults[dayName];
+        }
+
+        renderMonthGrid(containerId, locationId, year, month, onNavigate) {
+            const container = document.getElementById(containerId);
+            const locationData = this.data.locations[locationId];
+            if (!locationData) return;
+
+            const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
+
+            let html = `
+                <div class="calendar-nav">
+                    <button class="nav-btn" id="prev-month-btn" aria-label="Previous month"> &lt; Prev </button>
+                    <h2>${locationData.name}: ${monthName} ${year}</h2>
+                    <button class="nav-btn" id="next-month-btn" aria-label="Next month"> Next &gt; </button>
+                </div>
+            `;
+
+            html += `<div class="calendar-grid">`;
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayNames.forEach(d => html += `<div class="grid-header">${d}</div>`);
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                html += `<div class="day empty"></div>`;
+            }
+
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const current = new Date(year, month, d);
+                const dayInfo = this.getHoursForDate(locationId, current);
+                const isToday = current.toDateString() === new Date().toDateString() ? 'today' : '';
+
+                html += `<div class="day ${isToday}">
+                    <span class="date-num">${d}${isToday ? '<span class="visually-hidden"> (Today)</span>' : ''}</span>`;
+
+                if (dayInfo && dayInfo.status === 'closed') {
+                    html += `<span class="status-closed">Closed</span>`;
+                } else if (dayInfo) {
+                    html += `<span class="hours">${dayInfo.open} - ${dayInfo.close}</span>`;
+                }
+                if (dayInfo && dayInfo.note) {
+                    html += `<span class="note">${dayInfo.note}</span>`;
+                }
+                html += `</div>`;
+            }
+            html += `</div>`;
+
+            container.innerHTML = html;
+
+            document.getElementById('prev-month-btn').addEventListener('click', () => onNavigate(-1));
+            document.getElementById('next-month-btn').addEventListener('click', () => onNavigate(1));
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const hoursApp = new LibraryHours('hours.txt');
+        
+        // --- DYNAMIC DATE START ---
+        // Automatically get the current system date
+        const now = new Date();
+        let currentViewYear = now.getFullYear();
+        let currentViewMonth = now.getMonth(); 
+        // --- DYNAMIC DATE END ---
+
+        hoursApp.init().then(() => {
+            const loadingMsg = document.getElementById('loading-message');
+            const selector = document.getElementById('location-selector');
+            if (loadingMsg) loadingMsg.classList.add('hidden');
+
+            const update = () => {
+                hoursApp.renderMonthGrid(
+                    'library-hours-app', 
+                    selector.value, 
+                    currentViewYear, 
+                    currentViewMonth,
+                    handleNavigation 
+                );
+            };
+
+            function handleNavigation(direction) {
+                currentViewMonth += direction;
+                
+                if (currentViewMonth > 11) {
+                    currentViewMonth = 0;
+                    currentViewYear++;
+                } else if (currentViewMonth < 0) {
+                    currentViewMonth = 11;
+                    currentViewYear--;
+                }
+                update();
+            }
+
+            selector.addEventListener('change', update);
+            update(); 
+        });
+    });
+    </script>
+</body>
+</html>

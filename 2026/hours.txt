@@ -1,0 +1,367 @@
+{
+  "locations": {
+    "swanston": {
+      "name": "Swanston Library",
+      "defaults": {
+        "mon": { "open": "8am", "close": "8pm" },
+        "tue": { "open": "8am", "close": "8pm" },
+        "wed": { "open": "8am", "close": "8pm" },
+        "thu": { "open": "8am", "close": "8pm" },
+        "fri": { "open": "8am", "close": "8pm" },
+        "sat": { "open": "12pm", "close": "5pm" },
+        "sun": { "open": "12pm", "close": "5pm" }
+      },
+      "ranges": [
+        {
+          "name": "Assessment period extended hours",
+          "start": "2026-09-28",
+          "end": "2026-10-22",
+          "hours": {
+            "mon": { "open": "8am", "close": "11pm" },
+            "tue": { "open": "8am", "close": "11pm" },
+            "wed": { "open": "8am", "close": "11pm" },
+            "thu": { "open": "8am", "close": "11pm" },
+			"fri": { "open": "8am", "close": "8pm" },
+            "sat": { "open": "12pm", "close": "5pm" },
+            "sun": { "open": "12pm", "close": "5pm" }
+          },
+          "note": "Extended Hours"
+        },
+		{
+          "name": "Summer hours",
+          "start": "2026-11-16",
+          "end": "2026-12-24",
+          "hours": {
+            "mon": { "open": "8am", "close": "6pm" },
+            "tue": { "open": "8am", "close": "6pm" },
+            "wed": { "open": "8am", "close": "6pm" },
+            "thu": { "open": "8am", "close": "6pm" },
+			"fri": { "open": "8am", "close": "6pm" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "Summer hours"
+        },
+		{
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+			"fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        },
+		{
+          "name": "2027",
+          "start": "2027-01-04",
+          "end": "2027-12-31",
+          "hours": {
+            "mon": { "open": " ", "close": " " },
+            "tue": { "open": " ", "close": " " },
+            "wed": { "open": " ", "close": " " },
+            "thu": { "open": " ", "close": " " },
+			"fri": { "open": " ", "close": " " },
+            "sat": { "open": " ", "close": " " },
+            "sun": { "open": " ", "close": " " }
+          },
+          "note": "N/A"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+		"2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+      }
+    },
+    "bundoora": {
+      "name": "Bundoora Library",
+       "defaults": {
+        "mon": { "open": "8am", "close": "8pm" },
+        "tue": { "open": "8am", "close": "8pm" },
+        "wed": { "open": "8am", "close": "8pm" },
+        "thu": { "open": "8am", "close": "8pm" },
+        "fri": { "open": "8am", "close": "8pm" },
+        "sat": { "open": "12pm", "close": "5pm" },
+        "sun": { "open": "12pm", "close": "5pm" }
+      },
+      "ranges": [
+        {
+          "name": "Assessment period extended hours",
+          "start": "2026-09-28",
+          "end": "2026-10-22",
+          "hours": {
+            "mon": { "open": "8am", "close": "11pm" },
+            "tue": { "open": "8am", "close": "11pm" },
+            "wed": { "open": "8am", "close": "11pm" },
+            "thu": { "open": "8am", "close": "11pm" },
+			"fri": { "open": "8am", "close": "8pm" },
+            "sat": { "open": "12pm", "close": "5pm" },
+            "sun": { "open": "12pm", "close": "5pm" }
+          },
+          "note": "Extended Hours"
+        },
+		{
+          "name": "Summer hours",
+          "start": "2026-11-16",
+          "end": "2026-12-24",
+          "hours": {
+            "mon": { "open": "9am", "close": "5pm" },
+            "tue": { "open": "9am", "close": "5pm" },
+            "wed": { "open": "9am", "close": "5pm" },
+            "thu": { "open": "9am", "close": "5pm" },
+			"fri": { "open": "9am", "close": "5pm" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "Summer hours"
+        },
+		{
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+			"fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        },
+		{
+          "name": "2027",
+          "start": "2027-01-04",
+          "end": "2027-12-31",
+          "hours": {
+            "mon": { "open": " ", "close": " " },
+            "tue": { "open": " ", "close": " " },
+            "wed": { "open": " ", "close": " " },
+            "thu": { "open": " ", "close": " " },
+			"fri": { "open": " ", "close": " " },
+            "sat": { "open": " ", "close": " " },
+            "sun": { "open": " ", "close": " " }
+          },
+          "note": "N/A"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+		"2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+		}
+	  },
+    "brunswick": {
+      "name": "Brunswick Library",
+       "defaults": {
+        "mon": { "open": "8am", "close": "8pm" },
+        "tue": { "open": "8am", "close": "8pm" },
+        "wed": { "open": "8am", "close": "8pm" },
+        "thu": { "open": "8am", "close": "8pm" },
+        "fri": { "open": "8am", "close": "8pm" },
+        "sat": { "open": "12pm", "close": "5pm" },
+        "sun": { "open": "12pm", "close": "5pm" }
+      },
+      "ranges": [
+        {
+          "name": "Assessment period extended hours",
+          "start": "2026-09-28",
+          "end": "2026-10-22",
+          "hours": {
+            "mon": { "open": "8am", "close": "10.45pm" },
+            "tue": { "open": "8am", "close": "10.45pm" },
+            "wed": { "open": "8am", "close": "10.45pm" },
+            "thu": { "open": "8am", "close": "10.45pm" },
+			"fri": { "open": "8am", "close": "8pm" },
+            "sat": { "open": "12pm", "close": "5pm" },
+            "sun": { "open": "12pm", "close": "5pm" }
+          },
+          "note": "Extended Hours"
+        },
+		{
+          "name": "Summer hours",
+          "start": "2026-11-16",
+          "end": "2026-12-24",
+          "hours": {
+            "mon": { "open": "9am", "close": "5pm" },
+            "tue": { "open": "9am", "close": "5pm" },
+            "wed": { "open": "9am", "close": "5pm" },
+            "thu": { "open": "9am", "close": "5pm" },
+			"fri": { "open": "9am", "close": "5pm" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "Summer hours"
+        },
+		{
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+			"fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        },
+		{
+          "name": "2027",
+          "start": "2027-01-04",
+          "end": "2027-12-31",
+          "hours": {
+            "mon": { "open": " ", "close": " " },
+            "tue": { "open": " ", "close": " " },
+            "wed": { "open": " ", "close": " " },
+            "thu": { "open": " ", "close": " " },
+			"fri": { "open": " ", "close": " " },
+            "sat": { "open": " ", "close": " " },
+            "sun": { "open": " ", "close": " " }
+          },
+          "note": "N/A"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+		"2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+      }
+	},
+    "carlton": {
+      "name": "Carlton Library",
+       "defaults": {
+        "mon": { "open": "9am", "close": "5pm" },
+        "tue": { "open": "9am", "close": "5pm" },
+        "wed": { "open": "9am", "close": "5pm" },
+        "thu": { "open": "9am", "close": "5pm" },
+        "fri": { "open": "9am", "close": "5pm" },
+        "sat": { "open": "Study Space", "close": "" },
+        "sun": { "open": "Study Space", "close": "" }
+      },
+      "ranges": [
+		{
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+			"fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        },
+		{
+          "name": "2027",
+          "start": "2027-01-04",
+          "end": "2027-12-31",
+          "hours": {
+            "mon": { "open": " ", "close": " " },
+            "tue": { "open": " ", "close": " " },
+            "wed": { "open": " ", "close": " " },
+            "thu": { "open": " ", "close": " " },
+			"fri": { "open": " ", "close": " " },
+            "sat": { "open": " ", "close": " " },
+            "sun": { "open": " ", "close": " " }
+          },
+          "note": "N/A"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+		"2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+      }
+	},	
+    "makerspace": {
+      "name": "Makerspace",
+       "defaults": {
+        "mon": { "open": "10am", "close": "4pm", "note": "Closed 1pm -1.30pm" },
+        "tue": { "open": "10am", "close": "4pm", "note": "Closed 1pm -1.30pm" },
+        "wed": { "open": "10am", "close": "4pm", "note": "Closed 1pm -1.30pm" },
+        "thu": { "open": "10am", "close": "4pm", "note": "Closed 1pm -1.30pm" },
+        "fri": { "open": "10am", "close": "4pm", "note": "Closed 1pm -1.30pm" },
+        "sat": { "status": "closed" },
+        "sun": { "status": "closed" }
+      },
+      "ranges": [
+		{
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+			"fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        },
+		{
+          "name": "2027",
+          "start": "2027-01-04",
+          "end": "2027-12-31",
+          "hours": {
+            "mon": { "open": " ", "close": " " },
+            "tue": { "open": " ", "close": " " },
+            "wed": { "open": " ", "close": " " },
+            "thu": { "open": " ", "close": " " },
+			"fri": { "open": " ", "close": " " },
+            "sat": { "open": " ", "close": " " },
+            "sun": { "open": " ", "close": " " }
+          },
+          "note": "N/A"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+		"2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+      }
+	},	  
+    "askthelibrary": {
+      "name": "Ask the Library",
+      "defaults": {
+        "mon": { "open": "8am", "close": "9pm" },
+        "tue": { "open": "8am", "close": "9pm" },
+        "wed": { "open": "8am", "close": "9pm" },
+        "thu": { "open": "8am", "close": "9pm" },
+        "fri": { "open": "8am", "close": "6pm" },
+        "sat": { "open": "11am", "close": "5pm" },
+        "sun": { "open": "11am", "close": "5pm" }
+      },
+      "ranges": [
+        {
+          "name": "Closedown",
+          "start": "2026-12-25",
+          "end": "2027-01-03",
+          "hours": {
+            "mon": { "status": "closed" },
+            "tue": { "status": "closed" },
+            "wed": { "status": "closed" },
+            "thu": { "status": "closed" },
+            "fri": { "status": "closed" },
+            "sat": { "status": "closed" },
+            "sun": { "status": "closed" }
+          },
+          "note": "University closed"
+        }
+      ],
+      "exceptions": {
+        "2026-09-25": { "status": "closed", "note": "Grand Final holiday" },
+        "2026-11-03": { "status": "closed", "note": "Cup Day holiday" }
+      }
+    }
+	}
+  }
